@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html>
+<head>
+<!-- htmlaunch:enhanced:v2 -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2264%22%20height%3D%2264%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%221%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%25%22%20stop-color%3D%22hsl(136%2C72%25%2C58%25)%22%2F%3E%3Cstop%20offset%3D%22100%25%22%20stop-color%3D%22hsl(166%2C72%25%2C44%25)%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22url(%23g)%22%2F%3E%3Ctext%20x%3D%2232%22%20y%3D%2246%22%20text-anchor%3D%22middle%22%20font-family%3D%22ui-sans-serif%2Csystem-ui%2C-apple-system%2CSegoe%20UI%2Csans-serif%22%20font-size%3D%2238%22%20font-weight%3D%22800%22%20fill%3D%22%23ffffff%22%3EN%3C%2Ftext%3E%3C%2Fsvg%3E">
+<meta name="theme-color" content="#6f7b14">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Neo Runner X | deployed with HTMLaunch">
+<link rel="canonical" href="https://mayan123564-crypto.github.io/neo-runner-by-ayan/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Neo Runner X">
+<meta property="og:title" content="Neo Runner X">
+<meta property="og:description" content="Neo Runner X | deployed with HTMLaunch">
+<meta property="og:url" content="https://mayan123564-crypto.github.io/neo-runner-by-ayan/">
+<meta property="og:locale" content="en_US">
+<meta property="og:image" content="https://s.wordpress.com/mshots/v1/https%3A%2F%2Fmayan123564-crypto.github.io%2Fneo-runner-by-ayan%2F?w=1200&h=630">
+<meta property="og:image:alt" content="Neo Runner X">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Neo Runner X">
+<meta name="twitter:description" content="Neo Runner X | deployed with HTMLaunch">
+<meta name="twitter:image" content="https://s.wordpress.com/mshots/v1/https%3A%2F%2Fmayan123564-crypto.github.io%2Fneo-runner-by-ayan%2F?w=1200&h=630">
+<meta name="twitter:image:alt" content="Neo Runner X">
+
+<meta charset="UTF-8">
+<title>Neo Runner X</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+html,body{
+width:100%;
+height:100%;
+overflow:hidden;
+background:black;
+font-family:monospace;
+}
+
+canvas{
+display:block;
+background:
+linear-gradient(
+to bottom,
+#081426,
+#000000
+);
+}
+
+#ui{
+position:absolute;
+top:10px;
+left:10px;
+color:cyan;
+font-size:20px;
+z-index:100;
+text-shadow:0 0 10px cyan;
+}
+
+button{
+position:absolute;
+top:10px;
+right:10px;
+padding:10px;
+font-size:16px;
+cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div id="ui">
+Level: <span id="level">1</span>
+|
+Lives: <span id="lives">3</span>
+|
+Coins: <span id="coins">0</span>
+</div>
+
+<button id="fullscreen">
+Fullscreen
+</button>
+
+<canvas id="game"></canvas>
+
+<script>
+
+const canvas =
+document.getElementById("game");
+
+const ctx =
+canvas.getContext("2d");
+
+function resize(){
+canvas.width=window.innerWidth;
+canvas.height=window.innerHeight;
+}
+
+resize();
+
+window.addEventListener(
+"resize",
+resize
+);
+
+document.getElementById(
+"fullscreen"
+).onclick=()=>{
+
+document.documentElement
+.requestFullscreen();
+
+};
+
+const keys={};
+
+window.addEventListener(
+"keydown",
+e=>keys[e.key]=true
+);
+
+window.addEventListener(
+"keyup",
+e=>keys[e.key]=false
+);
+
+const player={
+
+x:100,
+y:100,
+
+w:40,
+h:40,
+
+vx:0,
+vy:0,
+
+speed:6,
+
+jumpPower:-14,
+
+ground:false,
+
+doubleJump:true,
+
+lives:3,
+
+coins:0,
+
+hasSword:false,
+
+shield:false
+
+};
+
+let level=0;
+let cameraX=0;
+
+function collide(a,b){
+
+return (
+
+a.x < b.x+b.w &&
+a.x+a.w > b.x &&
+a.y < b.y+b.h &&
+a.y+a.h > b.y
+
+);
+
+}
+
+function createLevel(id){
+
+let platforms=[];
+
+platforms.push({
+
+x:0,
+y:650,
+
+w:4000,
+h:80
+
+});
+
+for(
+let i=1;
+i<=10+id;
+i++
+){
+
+platforms.push({
+
+x:i*250,
+
+y:550
+-
+(i%4)*100,
+
+w:160,
+
+h:20
+
+});
+
+}
+
+let enemies=[];
+
+for(
+let i=1;
+i<=3+id;
+i++
+){
+
+enemies.push({
+
+x:i*450,
+
+y:610,
+
+w:35,
+
+h:35,
+
+dir:2,
+
+dead:false
+
+});
+
+}
+
+let coins=[];
+
+for(
+let i=1;
+i<=15;
+i++
+){
+
+coins.push({
+
+x:i*220,
+
+y:300+
+Math.sin(i)*120,
+
+taken:false
+
+});
+
+}
+
+return{
+
+platforms,
+
+enemies,
+
+coins,
+
+healthPack:{
+
+x:1000,
+y:520,
+
+w:30,
+h:30,
+
+taken:false
+
+},
+
+shieldPower:{
+
+x:1800,
+y:520,
+
+w:30,
+h:30,
+
+taken:false
+
+},
+
+swordPower:{
+
+x:2600,
+y:520,
+
+w:30,
+h:30,
+
+taken:false
+
+},
+
+goal:{
+
+x:3500,
+y:560,
+
+w:70,
+h:90
+
+}
+
+};
+
+}
+
+const levels=[];
+
+for(
+let i=0;
+i<10;
+i++
+){
+
+levels.push(
+createLevel(i)
+);
+
+}
+
+function resetPlayer(){
+
+player.x=100;
+player.y=100;
+
+player.vx=0;
+player.vy=0;
+
+player.doubleJump=true;
+
+}
+
+function update(){
+
+player.vx=0;
+
+if(
+keys["a"] ||
+keys["ArrowLeft"]
+){
+player.vx=-player.speed;
+}
+
+if(
+keys["d"] ||
+keys["ArrowRight"]
+){
+player.vx=player.speed;
+}
+
+if(keys["Shift"]){
+
+player.vx*=2;
+
+}
+
+if(
+(
+keys[" "] ||
+keys["w"] ||
+keys["ArrowUp"]
+)
+&& !player.jumpLock
+){
+
+if(player.ground){
+
+player.vy=
+player.jumpPower;
+
+player.ground=false;
+
+}
+else if(
+player.doubleJump
+){
+
+player.vy=
+player.jumpPower;
+
+player.doubleJump=false;
+
+}
+
+player.jumpLock=true;
+
+}
+
+if(
+!keys[" "] &&
+!keys["w"] &&
+!keys["ArrowUp"]
+){
+player.jumpLock=false;
+}
+
+player.vy+=0.7;
+
+player.x+=player.vx;
+player.y+=player.vy;
+
+player.ground=false;
+
+const lvl=
+levels[level];for(const p of lvl.platforms){
+
+if(
+player.x < p.x+p.w &&
+player.x+player.w > p.x &&
+player.y+player.h > p.y &&
+player.y+player.h < p.y+40 &&
+player.vy>=0
+){
+
+player.y=p.y-player.h;
+player.vy=0;
+
+player.ground=true;
+player.doubleJump=true;
+
+}
+
+}
+
+/* COINS */
+
+for(const coin of lvl.coins){
+
+if(
+!coin.taken &&
+collide(
+player,
+{
+x:coin.x,
+y:coin.y,
+w:20,
+h:20
+}
+)
+){
+
+coin.taken=true;
+player.coins++;
+
+}
+
+}
+
+/* HEALTH */
+
+if(
+!lvl.healthPack.taken &&
+collide(player,lvl.healthPack)
+){
+
+player.lives++;
+lvl.healthPack.taken=true;
+
+}
+
+/* SHIELD */
+
+if(
+!lvl.shieldPower.taken &&
+collide(player,lvl.shieldPower)
+){
+
+player.shield=true;
+lvl.shieldPower.taken=true;
+
+}
+
+/* SWORD */
+
+if(
+!lvl.swordPower.taken &&
+collide(player,lvl.swordPower)
+){
+
+player.hasSword=true;
+lvl.swordPower.taken=true;
+
+}
+
+/* ENEMIES */
+
+for(const enemy of lvl.enemies){
+
+if(enemy.dead) continue;
+
+if(player.x > enemy.x)
+enemy.x+=1.5;
+
+if(player.x < enemy.x)
+enemy.x-=1.5;
+
+if(collide(player,enemy)){
+
+if(player.hasSword){
+
+enemy.dead=true;
+
+}
+else{
+
+if(player.shield){
+
+player.shield=false;
+
+}
+else{
+
+player.lives--;
+
+if(player.lives<=0){
+
+alert("GAME OVER");
+location.reload();
+
+}
+
+}
+
+resetPlayer();
+
+}
+
+}
+
+}
+
+if(
+collide(player,lvl.goal)
+){
+
+level++;
+
+if(level>=10){
+
+alert(
+"YOU WIN!\nCoins: "+
+player.coins
+);
+
+location.reload();
+
+}
+
+else{
+
+document.getElementById(
+"level"
+).textContent=
+level+1;
+
+resetPlayer();
+
+}
+
+}
+
+if(
+player.y >
+canvas.height+500
+){
+
+player.lives--;
+
+if(player.lives<=0){
+
+alert("GAME OVER");
+
+location.reload();
+
+}
+
+resetPlayer();
+
+}
+
+cameraX=
+player.x
+-
+canvas.width/3;
+
+document.getElementById(
+"coins"
+).textContent=
+player.coins;
+
+document.getElementById(
+"lives"
+).textContent=
+player.lives;
+
+}
+
+function drawPlayer(){
+
+ctx.fillStyle="#00ff00";
+
+ctx.shadowColor="#00ff00";
+ctx.shadowBlur=20;
+
+ctx.fillRect(
+player.x,
+player.y,
+player.w,
+player.h
+);
+
+ctx.shadowBlur=0;
+
+/* EYES */
+
+ctx.fillStyle="#00ffff";
+
+ctx.fillRect(
+player.x+8,
+player.y+10,
+5,
+5
+);
+
+ctx.fillRect(
+player.x+27,
+player.y+10,
+5,
+5
+);
+
+/* MOUTH */
+
+ctx.fillStyle="white";
+
+ctx.fillRect(
+player.x+10,
+player.y+26,
+18,
+3
+);
+
+/* HELMET */
+
+ctx.strokeStyle="#00ffff";
+ctx.lineWidth=2;
+
+ctx.strokeRect(
+player.x,
+player.y,
+player.w,
+player.h
+);
+
+/* SHIELD EFFECT */
+
+if(player.shield){
+
+ctx.strokeStyle="cyan";
+ctx.lineWidth=3;
+
+ctx.beginPath();
+
+ctx.arc(
+player.x+20,
+player.y+20,
+30,
+0,
+Math.PI*2
+);
+
+ctx.stroke();
+
+}
+
+/* SWORD EFFECT */
+
+if(player.hasSword){
+
+ctx.fillStyle="silver";
+
+ctx.fillRect(
+player.x+42,
+player.y+5,
+6,
+25
+);
+
+ctx.fillStyle="gold";
+
+ctx.fillRect(
+player.x+36,
+player.y+18,
+18,
+4
+);
+
+}
+
+}
+
+function draw(){
+
+ctx.clearRect(
+0,
+0,
+canvas.width,
+canvas.height
+);
+
+/* STARS */
+
+for(let i=0;i<300;i++){
+
+ctx.fillStyle=
+"rgba(0,255,255,0.3)";
+
+ctx.fillRect(
+((i*190)
+-cameraX*0.2)
+%5000,
+(i*83)
+%canvas.height,
+2,
+2
+);
+
+}
+
+ctx.save();
+
+ctx.translate(
+-cameraX,
+0
+);
+
+const lvl=
+levels[level];
+
+/* PLATFORMS */
+
+for(const p of lvl.platforms){
+
+ctx.fillStyle="#00ffff";
+
+ctx.shadowColor="#00ffff";
+ctx.shadowBlur=12;
+
+ctx.fillRect(
+p.x,
+p.y,
+p.w,
+p.h
+);
+
+}
+
+/* COINS */
+
+for(const coin of lvl.coins){
+
+if(!coin.taken){
+
+ctx.fillStyle="gold";
+
+ctx.beginPath();
+
+ctx.arc(
+coin.x+10,
+coin.y+10,
+10,
+0,
+Math.PI*2
+);
+
+ctx.fill();
+
+}
+
+}
+
+/* HEALTH */
+
+if(
+!lvl.healthPack.taken
+){
+
+ctx.fillStyle="lime";
+
+ctx.fillRect(
+lvl.healthPack.x,
+lvl.healthPack.y,
+30,
+30
+);
+
+}
+
+/* SHIELD */
+
+if(
+!lvl.shieldPower.taken
+){
+
+ctx.strokeStyle="cyan";
+ctx.lineWidth=4;
+
+ctx.beginPath();
+
+ctx.arc(
+lvl.shieldPower.x+15,
+lvl.shieldPower.y+15,
+15,
+0,
+Math.PI*2
+);
+
+ctx.stroke();
+
+}
+
+/* SWORD */
+
+if(
+!lvl.swordPower.taken
+){
+
+ctx.fillStyle="silver";
+
+ctx.fillRect(
+lvl.swordPower.x+12,
+lvl.swordPower.y,
+6,
+30
+);
+
+ctx.fillStyle="gold";
+
+ctx.fillRect(
+lvl.swordPower.x+5,
+lvl.swordPower.y+18,
+20,
+4
+);
+
+}
+
+/* ENEMIES */
+
+for(const enemy of lvl.enemies){
+
+if(enemy.dead) continue;
+
+ctx.fillStyle="#ff0044";
+
+ctx.shadowColor="#ff0044";
+ctx.shadowBlur=20;
+
+ctx.fillRect(
+enemy.x,
+enemy.y,
+enemy.w,
+enemy.h
+);
+
+}
+
+/* GOAL */
+
+ctx.fillStyle="#ff00ff";
+
+ctx.shadowColor="#ff00ff";
+ctx.shadowBlur=25;
+
+ctx.fillRect(
+lvl.goal.x,
+lvl.goal.y,
+lvl.goal.w,
+lvl.goal.h
+);
+
+/* PLAYER */
+
+drawPlayer();
+
+ctx.restore();
+
+ctx.fillStyle="cyan";
+
+ctx.font=
+"18px monospace";
+
+ctx.fillText(
+"A/D Move | Space Jump | Shift Dash",
+20,
+canvas.height-20
+);
+
+}
+
+function gameLoop(){
+
+update();
+draw();
+
+requestAnimationFrame(
+gameLoop
+);
+
+}
+
+gameLoop();
+
+</script>
+</body>
+</html>
